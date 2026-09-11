@@ -274,7 +274,7 @@ function Login() {
         </div>
 
         {/* Button */}
-        {/* <button
+        <button
           onClick={handleLogin}
           disabled={loading}
           className="
@@ -290,7 +290,7 @@ function Login() {
           {loading ? "Logging..." : "Login"}
         </button>
 
-        About this project
+        {/* About this project
         <button
           onClick={() => setShowAbout(true)}
           className="
