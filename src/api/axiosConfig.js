@@ -5,8 +5,9 @@ import axios from "axios";
 // });
 
 const api = axios.create({
-  baseURL: "https://school-management-backend-v1k3.onrender.com",
+  baseURL: "https://school-management-backend-v1k3.onrender.com/api",
 });
+
 
 // REQUEST INTERCEPTOR
 api.interceptors.request.use(
