@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import AdminLayout from "../../layouts/AdminLayout";
 import apiService from "../../api/apiService";
 
@@ -21,11 +22,43 @@ function AddTeacher() {
     experience: "",
   });
 
+  const [documents, setDocuments] = useState({
+    profileImage: null,
+    aadhaarCard: null,
+    panCard: null,
+    addressProof: null,
+    signature: null,
+    resume: null,
+  });
+
+  const [saving, setSaving] = useState(false);
+
   const handleChange = (e) => {
     setTeacher({
       ...teacher,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleFileChange = (e, documentType) => {
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      alert(`${file.name} is too large. Maximum file size is 10 MB.`);
+      e.target.value = "";
+      return;
+    }
+
+    setDocuments((prev) => ({
+      ...prev,
+      [documentType]: file,
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -92,32 +125,129 @@ function AddTeacher() {
     }
 
     try {
-      console.log("Sending teacher data:", teacher);
+      setSaving(true);
 
-      const response = await apiService.createTeacher(teacher);
+      console.log("Teacher data:", teacher);
+      console.log("Teacher documents:", documents);
 
-      console.log("Teacher created:", response);
+      /*
+       * Create FormData because backend expects:
+       *
+       * @RequestPart("teacher")
+       * @RequestPart("profileImage")
+       * @RequestPart("aadhaarCard")
+       * @RequestPart("panCard")
+       * @RequestPart("addressProof")
+       * @RequestPart("signature")
+       * @RequestPart("resume")
+       */
 
-      alert("Teacher Added Successfully");
+      const formData = new FormData();
 
-      setTeacher({
-        firstName: "",
-        middleName: "",
-        lastName: "",
-        email: "",
-        password: "",
-        mobileNumber: "",
-        address: "",
-        gender: "",
-        dateOfBirth: "",
-        subject: "",
-        qualification: "",
-        experience: "",
-      })
-      // navigate("/teachers");
+      /*
+       * IMPORTANT:
+       * teacher must be sent as JSON text with the key "teacher".
+       */
+      formData.append(
+        "teacher",
+        new Blob([JSON.stringify(teacher)], {
+          type: "application/json",
+        })
+      );
+
+      /*
+       * Add files only when selected.
+       */
+      if (documents.profileImage) {
+        formData.append("profileImage", documents.profileImage);
+      }
+
+      if (documents.aadhaarCard) {
+        formData.append("aadhaarCard", documents.aadhaarCard);
+      }
+
+      if (documents.panCard) {
+        formData.append("panCard", documents.panCard);
+      }
+
+      if (documents.addressProof) {
+        formData.append("addressProof", documents.addressProof);
+      }
+
+      if (documents.signature) {
+        formData.append("signature", documents.signature);
+      }
+
+      if (documents.resume) {
+        formData.append("resume", documents.resume);
+      }
+
+      /*
+       * Debug FormData
+       */
+      for (const [key, value] of formData.entries()) {
+        console.log("FormData:", key, value);
+      }
+
+      const response = await apiService.createTeacher(formData);
+
+      console.log("Teacher created response:", response.data);
+
+      if (response.data?.status === 0) {
+        alert(
+          response.data.message ||
+            "Teacher Added Successfully"
+        );
+
+        setTeacher({
+          firstName: "",
+          middleName: "",
+          lastName: "",
+          email: "",
+          password: "",
+          mobileNumber: "",
+          address: "",
+          gender: "",
+          dateOfBirth: "",
+          subject: "",
+          qualification: "",
+          experience: "",
+        });
+
+        setDocuments({
+          profileImage: null,
+          aadhaarCard: null,
+          panCard: null,
+          addressProof: null,
+          signature: null,
+          resume: null,
+        });
+
+        /*
+         * Uncomment if you want to go back
+         * after successful creation.
+         */
+        // navigate("/teachers");
+      } else {
+        alert(
+          response.data?.message ||
+            "Failed to add teacher"
+        );
+      }
     } catch (error) {
       console.error("Create teacher failed:", error);
-      alert("Failed to add teacher");
+
+      console.error(
+        "Backend error:",
+        error.response?.data
+      );
+
+      alert(
+        error.response?.data?.message ||
+          "Failed to add teacher"
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -133,7 +263,14 @@ function AddTeacher() {
       </div>
 
       <div className="mb-8">
-        <h1 className="text-4xl font-bold">Add Teacher</h1>
+        <h1 className="text-4xl font-bold">
+          Add Teacher
+        </h1>
+
+        {/* <p className="text-gray-500 mt-2">
+          Create a new teacher profile with personal,
+          professional and document details.
+        </p> */}
       </div>
 
       <div className="bg-white rounded-3xl shadow-md p-8">
@@ -141,8 +278,12 @@ function AddTeacher() {
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
+          {/* First Name */}
           <div>
-            <label className="font-semibold">First Name</label>
+            <label className="font-semibold">
+              First Name
+            </label>
+
             <input
               type="text"
               name="firstName"
@@ -152,8 +293,12 @@ function AddTeacher() {
             />
           </div>
 
+          {/* Middle Name */}
           <div>
-            <label className="font-semibold">Middle Name</label>
+            <label className="font-semibold">
+              Middle Name
+            </label>
+
             <input
               type="text"
               name="middleName"
@@ -163,8 +308,12 @@ function AddTeacher() {
             />
           </div>
 
+          {/* Last Name */}
           <div>
-            <label className="font-semibold">Last Name</label>
+            <label className="font-semibold">
+              Last Name
+            </label>
+
             <input
               type="text"
               name="lastName"
@@ -174,8 +323,12 @@ function AddTeacher() {
             />
           </div>
 
+          {/* Email */}
           <div>
-            <label className="font-semibold">Email</label>
+            <label className="font-semibold">
+              Email
+            </label>
+
             <input
               type="email"
               name="email"
@@ -185,8 +338,12 @@ function AddTeacher() {
             />
           </div>
 
+          {/* Password */}
           <div>
-            <label className="font-semibold">Password</label>
+            <label className="font-semibold">
+              Password
+            </label>
+
             <input
               type="password"
               name="password"
@@ -196,33 +353,54 @@ function AddTeacher() {
             />
           </div>
 
+          {/* Mobile Number */}
           <div>
-            <label className="font-semibold">Mobile Number</label>
+            <label className="font-semibold">
+              Mobile Number
+            </label>
+
             <input
               type="text"
               name="mobileNumber"
               value={teacher.mobileNumber}
               onChange={handleChange}
+              maxLength="10"
               className="w-full border p-3 rounded-xl mt-2"
             />
           </div>
 
+          {/* Gender */}
           <div>
-            <label className="font-semibold">Gender</label>
+            <label className="font-semibold">
+              Gender
+            </label>
+
             <select
               name="gender"
               value={teacher.gender}
               onChange={handleChange}
               className="w-full border p-3 rounded-xl mt-2"
             >
-              <option value="">Select Gender</option>
-              <option value="MALE">Male</option>
-              <option value="FEMALE">Female</option>
+              <option value="">
+                Select Gender
+              </option>
+
+              <option value="MALE">
+                Male
+              </option>
+
+              <option value="FEMALE">
+                Female
+              </option>
             </select>
           </div>
 
+          {/* Date of Birth */}
           <div>
-            <label className="font-semibold">Date of Birth</label>
+            <label className="font-semibold">
+              Date of Birth
+            </label>
+
             <input
               type="date"
               name="dateOfBirth"
@@ -232,8 +410,12 @@ function AddTeacher() {
             />
           </div>
 
+          {/* Subject */}
           <div>
-            <label className="font-semibold">Subject</label>
+            <label className="font-semibold">
+              Subject
+            </label>
+
             <input
               type="text"
               name="subject"
@@ -243,8 +425,12 @@ function AddTeacher() {
             />
           </div>
 
+          {/* Qualification */}
           <div>
-            <label className="font-semibold">Qualification</label>
+            <label className="font-semibold">
+              Qualification
+            </label>
+
             <input
               type="text"
               name="qualification"
@@ -254,8 +440,12 @@ function AddTeacher() {
             />
           </div>
 
+          {/* Experience */}
           <div>
-            <label className="font-semibold">Experience (Years)</label>
+            <label className="font-semibold">
+              Experience (Years)
+            </label>
+
             <input
               type="number"
               name="experience"
@@ -265,8 +455,12 @@ function AddTeacher() {
             />
           </div>
 
+          {/* Address */}
           <div className="md:col-span-2">
-            <label className="font-semibold">Address</label>
+            <label className="font-semibold">
+              Address
+            </label>
+
             <textarea
               name="address"
               rows="4"
@@ -276,12 +470,185 @@ function AddTeacher() {
             />
           </div>
 
-          <div className="md:col-span-2">
+          {/* Documents Section */}
+          <div className="md:col-span-2 mt-4">
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Teacher Documents
+            </h2>
+
+            <p className="text-gray-500 mb-6">
+              Upload teacher profile and required
+              documents. Maximum file size is 10 MB per file.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+              {/* Profile Image */}
+              <div className="border rounded-2xl p-5 bg-gray-50">
+                <label className="font-semibold block mb-3">
+                  Profile Image
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      "profileImage"
+                    )
+                  }
+                  className="w-full border p-3 rounded-xl bg-white"
+                />
+
+                {documents.profileImage && (
+                  <p className="text-sm text-green-600 mt-2 break-all">
+                    {documents.profileImage.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Aadhaar Card */}
+              <div className="border rounded-2xl p-5 bg-gray-50">
+                <label className="font-semibold block mb-3">
+                  Aadhaar Card
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      "aadhaarCard"
+                    )
+                  }
+                  className="w-full border p-3 rounded-xl bg-white"
+                />
+
+                {documents.aadhaarCard && (
+                  <p className="text-sm text-green-600 mt-2 break-all">
+                    {documents.aadhaarCard.name}
+                  </p>
+                )}
+              </div>
+
+              {/* PAN Card */}
+              <div className="border rounded-2xl p-5 bg-gray-50">
+                <label className="font-semibold block mb-3">
+                  PAN Card
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      "panCard"
+                    )
+                  }
+                  className="w-full border p-3 rounded-xl bg-white"
+                />
+
+                {documents.panCard && (
+                  <p className="text-sm text-green-600 mt-2 break-all">
+                    {documents.panCard.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Address Proof */}
+              <div className="border rounded-2xl p-5 bg-gray-50">
+                <label className="font-semibold block mb-3">
+                  Address Proof
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      "addressProof"
+                    )
+                  }
+                  className="w-full border p-3 rounded-xl bg-white"
+                />
+
+                {documents.addressProof && (
+                  <p className="text-sm text-green-600 mt-2 break-all">
+                    {documents.addressProof.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Signature */}
+              <div className="border rounded-2xl p-5 bg-gray-50">
+                <label className="font-semibold block mb-3">
+                  Signature
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      "signature"
+                    )
+                  }
+                  className="w-full border p-3 rounded-xl bg-white"
+                />
+
+                {documents.signature && (
+                  <p className="text-sm text-green-600 mt-2 break-all">
+                    {documents.signature.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Resume */}
+              <div className="border rounded-2xl p-5 bg-gray-50">
+                <label className="font-semibold block mb-3">
+                  Resume
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*,.pdf,.doc,.docx"
+                  onChange={(e) =>
+                    handleFileChange(
+                      e,
+                      "resume"
+                    )
+                  }
+                  className="w-full border p-3 rounded-xl bg-white"
+                />
+
+                {documents.resume && (
+                  <p className="text-sm text-green-600 mt-2 break-all">
+                    {documents.resume.name}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Submit */}
+          <div className="md:col-span-2 mt-4">
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl"
+              disabled={saving}
+              className={`px-6 py-3 rounded-xl text-white font-semibold ${
+                saving
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-blue-600 hover:bg-blue-700"
+              }`}
             >
-              Save Teacher
+              {saving
+                ? "Saving Teacher..."
+                : "Save Teacher"}
             </button>
           </div>
         </form>

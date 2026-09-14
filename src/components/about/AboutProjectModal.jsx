@@ -10,6 +10,7 @@ import {
   FaReact,
   FaJava,
   FaExclamationTriangle,
+  FaCheckCircle,
   FaGithub,
 } from "react-icons/fa";
 
@@ -195,24 +196,42 @@ function AboutProjectModal({ open, onClose }) {
           </div>
 
 
-          {/* DEMO NOTICE */}
+          {/* LIVE DEPLOYMENT */}
+
+          <div className="mt-4 bg-green-50 border border-green-100 rounded-2xl p-5 flex gap-3">
+            <FaCheckCircle className="text-green-500 mt-0.5 shrink-0" />
+            <div>
+              <h2 className="font-semibold text-green-800 mb-1">
+                This project is live
+              </h2>
+              <p className="text-sm text-green-700 leading-relaxed">
+                Both sides of this project are actually deployed and talking
+                to each other — the frontend (what you're looking at right
+                now) is hosted on <strong>Vercel</strong>, and the backend
+                (the Spring Boot server + MySQL database) is hosted on{" "}
+                <strong>Render</strong>. So login here genuinely works, not
+                just on my own computer.
+              </p>
+            </div>
+          </div>
+
+
+          {/* COLD START NOTICE */}
 
           <div className="mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-5 flex gap-3">
             <FaExclamationTriangle className="text-amber-500 mt-0.5 shrink-0" />
             <div>
               <h2 className="font-semibold text-amber-800 mb-1">
-                A quick note about the login
+                One thing to expect on first login
               </h2>
               <p className="text-sm text-amber-700 leading-relaxed">
-                Every screen here is fully built and working — but login
-                won't actually go through on this page right now. That's
-                because the backend (the Spring Boot server that checks
-                your username and password and talks to the database) only
-                runs on my own computer for now — it isn't hosted on a live
-                server yet, so there's nothing online for this page to
-                connect to. Everything shown in this "About" section
-                reflects how the app behaves and what it can do when the
-                backend is running.
+                The backend is on Render's free tier, which "sleeps" the
+                server after a period of no activity to save resources. If
+                nobody has used the app in a while, the very first login
+                attempt can take 30–50 seconds while the server wakes back
+                up — this isn't a bug, just how free hosting behaves. After
+                that first request, everything responds normally and
+                quickly.
               </p>
             </div>
           </div>
@@ -227,14 +246,12 @@ function AboutProjectModal({ open, onClose }) {
             <p className="text-sm text-slate-600 leading-relaxed">
               When you type a username and password and press "Login," this
               page sends that information to a separate program called the
-              backend. The backend checks if the details are correct, looks
-              up who you are — Admin, Teacher, or Student — and sends back
-              only the data and pages that person is allowed to see. That
-              backend is built with Spring Boot (a Java framework) and
-              stores everything in a MySQL database. Right now that backend
-              only runs locally on my machine while I build and test it, so
-              this hosted page can display and explain the project, but it
-              can't complete a real login yet.
+              backend, hosted on Render. The backend checks if the details
+              are correct, looks up who you are — Admin, Teacher, or
+              Student — and sends back only the data and pages that person
+              is allowed to see. That backend is built with Spring Boot (a
+              Java framework) and stores everything in a MySQL database,
+              also hosted on Render.
             </p>
           </div>
 
@@ -373,7 +390,7 @@ function AboutProjectModal({ open, onClose }) {
 
         {/* FOOTER */}
 
-        <div className="
+        {/* <div className="
           px-7 md:px-9
           py-4
           border-t
@@ -410,7 +427,7 @@ function AboutProjectModal({ open, onClose }) {
             demonstration purposes.
           </p>
 
-        </div>
+        </div> */}
 
       </div>
 
