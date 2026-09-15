@@ -36,13 +36,34 @@ function TeacherProfile() {
   const FILE_BASE_URL = "https://school-management-backend-v1k3.onrender.com/api/files/";
 
 
+  // const getDocumentUrl = (path) => {
+  //   if (!path) return null;
+  //   if (path.startsWith("http://") || path.startsWith("https://")) {
+  //     return path;
+  //   }
+  //   return `${FILE_BASE_URL}${path}`;
+  // };
+
   const getDocumentUrl = (path) => {
-    if (!path) return null;
-    if (path.startsWith("http://") || path.startsWith("https://")) {
-      return path;
-    }
-    return `${FILE_BASE_URL}${path}`;
-  };
+  if (!path) return null;
+
+  if (path.startsWith("http://localhost:8080")) {
+    return path.replace(
+      "http://localhost:8080",
+      "https://school-management-backend-v1k3.onrender.com"
+    );
+  }
+
+  if (path.startsWith("https://school-management-backend-v1k3.onrender.com")) {
+    return path;
+  }
+
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+
+  return `${FILE_BASE_URL}${path}`;
+};
 
   useEffect(() => {
 
