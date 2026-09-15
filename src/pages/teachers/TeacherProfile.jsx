@@ -31,7 +31,10 @@ function TeacherProfile() {
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const FILE_BASE_URL = "http://localhost:8080/api/files/";
+  //const FILE_BASE_URL = "http://localhost:8080/api/files/";
+
+  const FILE_BASE_URL = "https://school-management-backend-v1k3.onrender.com/api/files/";
+
 
   const getDocumentUrl = (path) => {
     if (!path) return null;
